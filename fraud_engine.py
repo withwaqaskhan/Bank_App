@@ -7,18 +7,31 @@ import numpy as np
 # Warnings ignore karne ke liye
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# 1. Model Path Setup
-MODEL_PATH = os.path.join("Fraud", "xgboost_fraud_pipeline.pkl")
+# ========================================================
+# 1. Model Path Setup (CLOUD COMPATIBLE)
+# ========================================================
+# Isse path hamesha file ki location se uthayega (Cloud Fix)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "Fraud", "xgboost_fraud_pipeline.pkl")
 
+# ========================================================
 # 2. Load Model Pipeline
+# ========================================================
 try:
-    fraud_model = joblib.load(MODEL_PATH)
-    MODEL_LOADED = True
-    print("✅ Fraud Detection Engine: ATM Security Active (String-Input Mode)!")
+    if os.path.exists(MODEL_PATH):
+        fraud_model = joblib.load(MODEL_PATH)
+        MODEL_LOADED = True
+        print("✅ Fraud Detection Engine: ATM Security Active!")
+    else:
+        MODEL_LOADED = False
+        print(f"🚨 Error: Model file not found at {MODEL_PATH}")
 except Exception as e:
     MODEL_LOADED = False
     print(f"🚨 Error loading Fraud Model: {e}")
 
+# ========================================================
+# 3. Predict Function (Your Original Logic - Unchanged)
+# ========================================================
 def predict_fraud(step, trans_type, amount, oldbalanceOrg, newbalanceOrig, oldbalanceDest=0.0, newbalanceDest=None):
     """
     Inputs are passed as a DataFrame to let the Pipeline's OneHotEncoder handle 'type'.
@@ -46,7 +59,6 @@ def predict_fraud(step, trans_type, amount, oldbalanceOrg, newbalanceOrig, oldba
         f_newDest = to_num(newbalanceDest) if newbalanceDest is not None else f_amount
 
         # B. 7-Feature DataFrame (String 'type' for the Encoder)
-        # Yahan hum numeric mapping nahi kar rahe, direct string 'CASH_OUT' bhej rahe hain
         data = pd.DataFrame([{
             'step': f_step,
             'type': str(trans_type).upper(), # e.g., 'CASH_OUT'
@@ -58,11 +70,10 @@ def predict_fraud(step, trans_type, amount, oldbalanceOrg, newbalanceOrig, oldba
         }])
 
         # C. Prediction using Pipeline
-        # Pipeline khud OneHotEncoding karega aur phir XGBoost ko degi
         probs = fraud_model.predict_proba(data)
         fraud_probability = float(probs[0][1]) 
 
-        # Terminal Debugging (Aapko terminal pe poora vector dikhega)
+        # Terminal Debugging
         print(f"\n--- 🛡️ AI Security Analysis ---")
         print(f"Features Sent to Pipeline:\n{data.iloc[0]}")
         print(f"Risk Score: {fraud_probability:.4f}")
@@ -77,6 +88,5 @@ def predict_fraud(step, trans_type, amount, oldbalanceOrg, newbalanceOrig, oldba
         return is_fraud, fraud_probability
 
     except Exception as e:
-        # Agar abhi bhi masla aaye toh terminal detail batayega
         print(f"⚠️ Pipeline/Encoder Error: {e}")
         return False, 0.0
