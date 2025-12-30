@@ -8,29 +8,45 @@ import numpy as np
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # ========================================================
-# 1. Model Path Setup (CLOUD COMPATIBLE)
+# 1. Model Path Setup (CLOUD COMPATIBLE - MULTI-PATH CHECK)
 # ========================================================
-# Isse path hamesha file ki location se uthayega (Cloud Fix)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "Fraud", "xgboost_fraud_pipeline.pkl")
+
+# Linux servers par 'Fraud' aur 'fraud' alag hote hain, isliye hum dono check karenge
+path_options = [
+    os.path.join(BASE_DIR, "Fraud", "xgboost_fraud_pipeline.pkl"),
+    os.path.join(BASE_DIR, "fraud", "xgboost_fraud_pipeline.pkl"),
+    os.path.join(os.getcwd(), "Fraud", "xgboost_fraud_pipeline.pkl")
+]
+
+MODEL_PATH = None
+for p in path_options:
+    if os.path.exists(p):
+        MODEL_PATH = p
+        break
 
 # ========================================================
 # 2. Load Model Pipeline
 # ========================================================
+fraud_model = None
+MODEL_LOADED = False
+
 try:
-    if os.path.exists(MODEL_PATH):
+    if MODEL_PATH:
         fraud_model = joblib.load(MODEL_PATH)
         MODEL_LOADED = True
-        print("✅ Fraud Detection Engine: ATM Security Active!")
+        print(f"✅ Fraud Detection Engine Active! Loaded from: {MODEL_PATH}")
     else:
         MODEL_LOADED = False
-        print(f"🚨 Error: Model file not found at {MODEL_PATH}")
+        print("🚨 Error: Model file not found in any expected location.")
+        # Cloud Logs ke liye directory structure print karein
+        print(f"Current Directory Contents: {os.listdir(BASE_DIR)}")
 except Exception as e:
     MODEL_LOADED = False
     print(f"🚨 Error loading Fraud Model: {e}")
 
 # ========================================================
-# 3. Predict Function (Your Original Logic - Unchanged)
+# 3. Predict Function (Your Original Logic - COMPLETELY UNCHANGED)
 # ========================================================
 def predict_fraud(step, trans_type, amount, oldbalanceOrg, newbalanceOrig, oldbalanceDest=0.0, newbalanceDest=None):
     """
