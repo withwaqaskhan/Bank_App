@@ -5,3 +5,4 @@
 {'timestamp': '2025-12-30 02:19:15', 'account_no': 'BOP-94875595', 'activity': 'AI_Estimated Insurance of Rs.23427.1171875'}
 {'timestamp': '2025-12-30 09:48:50', 'account_no': 'BOP-94875595', 'activity': 'Visited Home Dashboard'}
 {'timestamp': '2025-12-30 09:59:35', 'account_no': 'BOP-99783715', 'activity': 'Account Created and Registered'}
+{'timestamp': '2025-12-30 10:30:04', 'account_no': 'BOP-94875595', 'activity': 'Visited Home Dashboard'}

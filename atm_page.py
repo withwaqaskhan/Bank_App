@@ -47,6 +47,7 @@ def show():
                     oldbalanceDest=0.0, 
                     newbalanceDest=amt_val
                 )
+                st.write(f"DEBUG -> Model Loaded: {fe.MODEL_LOADED} | Risk Score: {prob_score}")
 
                 if is_fraud:
                     st.session_state.atm_fraud = True
