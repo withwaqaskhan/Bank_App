@@ -9,10 +9,7 @@ import time
 
 def train_specific_user(face_id, account_no):
     """Specific user ke folder se FRESH training (Zero Memory Logic)."""
-    # 1. Bilkul naya recognizer (Purani memory khatam)
     recognizer = cv2.face.LBPHFaceRecognizer_create()
-    
-    # Path ko account_no par set kiya (Jese Verify page mein hai)
     path = f"data/{account_no}"
     
     if not os.path.exists(path) or len(os.listdir(path)) == 0:
@@ -26,11 +23,9 @@ def train_specific_user(face_id, account_no):
             img_path = os.path.join(path, img_name)
             gray_img = Image.open(img_path).convert('L')
             img_numpy = np.array(gray_img, 'uint8')
-            
             face_samples.append(img_numpy)
             ids.append(int(face_id))
             
-        # Sirf isi folder par training
         recognizer.train(face_samples, np.array(ids))
         return recognizer
     except:
@@ -44,7 +39,7 @@ def show():
     if 'reset_user_data' not in st.session_state:
         st.session_state.reset_user_data = None
 
-    # --- STEP 1: VERIFY CREDENTIALS ---
+    # --- STEP 1: VERIFY CREDENTIALS (No Changes) ---
     if st.session_state.reset_step == 1:
         st.subheader("🛡️ Step 1: Basic Information")
         with st.container(border=True):
@@ -72,7 +67,7 @@ def show():
                 else:
                     st.error("❌ Identity Mismatch: Provided details do not match.")
 
-    # --- STEP 2: SECURITY QUESTION ---
+    # --- STEP 2: SECURITY QUESTION (No Changes) ---
     elif st.session_state.reset_step == 2:
         user = st.session_state.reset_user_data
         st.subheader("👤 Step 2: Identity Confirmation")
@@ -87,66 +82,48 @@ def show():
                 else:
                     st.error("❌ Incorrect Security Answer.")
 
-    # --- STEP 3: FACE VERIFICATION (Updated Logic) ---
+    # --- STEP 3: FACE VERIFICATION (UPDATED FOR CLOUD) ---
     elif st.session_state.reset_step == 3:
         user = st.session_state.reset_user_data
         st.subheader("📸 Step 3: Biometric Face Scan")
         st.info(f"Scanning for Account: {user['account_no']}")
         
-        if st.button("Start Scan", use_container_width=True, type="primary"):
-            with st.spinner("Initializing Isolated Biometric Sensor..."):
-                # Yahan account_no pass kiya taake folder sahi dhoond sakay
+        # Streamlit Camera Input instead of cv2.VideoCapture
+        img_file = st.camera_input("Verify identity to reset PIN")
+
+        if img_file:
+            with st.spinner("Verifying Biometrics..."):
                 recognizer = train_specific_user(user['face_id'], user['account_no'])
-                time.sleep(1)
-            
-            if recognizer is None:
-                st.error("🚨 Biometric data not found! System could not locate your face profile.")
-                return
+                
+                if recognizer is None:
+                    st.error("🚨 Biometric data not found!")
+                    return
 
-            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-            cap = cv2.VideoCapture(0)
-            frame_placeholder = st.empty()
-            match_buffer = 0
-
-            while True:
-                ret, frame = cap.read()
-                if not ret: break
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                # Convert image for processing
+                image = Image.open(img_file)
+                img_array = np.array(image)
+                cv2_img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+                gray = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2GRAY)
+                
+                face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
                 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-                status_text = "Scanning..."
-                color = (255, 165, 0)
+                if len(faces) > 0:
+                    for (x, y, w, h) in faces:
+                        detected_id, confidence = recognizer.predict(gray[y:y+h, x:x+w])
+                        
+                        # Strict Security Logic
+                        if detected_id == int(user['face_id']) and confidence < 35:
+                            st.success(f"✅ Identity Verified! (Confidence: {round(100-confidence, 1)}%)")
+                            time.sleep(1.5)
+                            st.session_state.reset_step = 4
+                            st.rerun()
+                        else:
+                            st.error("❌ Face Mismatch! Access Denied.")
+                else:
+                    st.warning("No face detected. Please ensure proper lighting.")
 
-                for (x, y, w, h) in faces:
-                    # Confidence and ID Predict
-                    detected_id, confidence = recognizer.predict(gray[y:y+h, x:x+w])
-                    
-                    # Verify page wali Strict Logic (Score < 35)
-                    if detected_id == int(user['face_id']) and confidence < 35:
-                        match_buffer += 1
-                        status_text = f"Identity Verified: {int(match_buffer/30 * 100)}%"
-                        color = (0, 255, 0)
-                    else:
-                        match_buffer = 0
-                        status_text = "Mismatch!"
-                        color = (0, 0, 255)
-                    
-                    cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
-                    cv2.putText(frame, status_text, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
-
-                frame_placeholder.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-
-                if match_buffer >= 30:
-                    cap.release()
-                    cv2.destroyAllWindows()
-                    st.session_state.reset_step = 4
-                    st.rerun()
-                    break
-
-            cap.release()
-            cv2.destroyAllWindows()
-
-    # --- STEP 4: NEW PIN SETTING ---
+    # --- STEP 4: NEW PIN SETTING (No Changes) ---
     elif st.session_state.reset_step == 4:
         st.subheader("🔑 Step 4: Set New PIN")
         with st.container(border=True):
