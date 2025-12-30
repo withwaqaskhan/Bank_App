@@ -1,0 +1,5 @@
+{'timestamp': '2025-12-30 02:16:27', 'account_no': 'BOP-94875595', 'activity': 'Account Created and Registered'}
+{'timestamp': '2025-12-30 02:18:37', 'account_no': 'BOP-94875595', 'activity': 'Visited Home Dashboard'}
+{'timestamp': '2025-12-30 02:18:48', 'account_no': 'BOP-94875595', 'activity': 'Success Deposit of Rs.50000.0'}
+{'timestamp': '2025-12-30 02:18:48', 'account_no': 'BOP-94875595', 'activity': 'Successfully deposited Rs. 50000.0'}
+{'timestamp': '2025-12-30 02:19:15', 'account_no': 'BOP-94875595', 'activity': 'AI_Estimated Insurance of Rs.23427.1171875'}

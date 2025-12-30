@@ -1,0 +1,2 @@
+{'date': '2025-12-30 02:18:48', 'type': 'Deposit', 'amount': 50000.0, 'sender': 'BOP-94875595', 'receiver_acc': 'Self', 'receiver_name': 'Self', 'status': 'Success', 'category': 'Savings'}
+{'date': '2025-12-30 02:19:15', 'type': 'Insurance', 'amount': 23427.1171875, 'sender': 'BOP-94875595', 'receiver_acc': 'N/A', 'receiver_name': 'N/A', 'status': 'AI_Estimated', 'category': 'Medical'}

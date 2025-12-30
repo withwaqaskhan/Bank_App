@@ -1,0 +1,2 @@
+{'timestamp': '2025-12-30 02:19:01', 'account_no': 'BOP-94875595', 'user_name': 'kamran khan', 'message': 'hi mera nam kiya hai', 'sentiment': 'Neutral', 'confidence': '98.8%', 'important_word': 'mera', 'action': 'Monitor Normally'}
+{'timestamp': '2025-12-30 02:20:36', 'account_no': 'BOP-94875595', 'user_name': 'kamran khan', 'message': 'someone steal my money', 'sentiment': 'Negative', 'confidence': '75.0%', 'important_word': 'steal', 'action': 'Urgent Agent Escalation'}
