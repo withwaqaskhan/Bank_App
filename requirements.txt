@@ -1,38 +1,38 @@
 # --- UI & Core ---
-streamlit==1.52.2
+streamlit==1.32.0
 
 # --- Biometrics & Computer Vision ---
-# Cloud ke liye headless version lekin version wahi jo aapka hai
-opencv-contrib-python-headless==4.12.0.88
-numpy==2.2.6
-pillow==12.0.0
-pyzbar==0.1.9
+opencv-contrib-python-headless
+numpy<2.0.0
+pillow
+pyzbar
 
 # --- AI, Chatbot & LangChain ---
-langchain==1.2.0
-langchain-community==0.4.1
-langchain-core==1.2.5
-langchain-groq==1.1.1
-langchain-huggingface==1.2.0
-langgraph==1.0.5
-groq==0.37.1
-faiss-cpu==1.13.2
-python-dotenv==1.2.1
+langchain
+langchain-community
+langchain-core
+langchain-groq
+langchain-huggingface
+sentence-transformers
+langgraph
+groq
+faiss-cpu
+python-dotenv
 
 # --- Machine Learning & Models ---
-scikit-learn==1.8.0
-xgboost==3.1.2
-catboost==1.2.8
-joblib==1.5.3
-safetensors==0.7.0
-torch==2.9.1
+scikit-learn
+xgboost
+catboost
+joblib
+safetensors
+torch
 
 # --- Data, EDA & Utils ---
-pandas==2.3.3
-matplotlib==3.10.8
-seaborn==0.13.2
-plotly==6.5.0
-scipy==1.16.3
-pypdf==6.5.0
-requests==2.32.5
-PyYAML==6.0.3
+pandas
+matplotlib
+seaborn
+plotly
+scipy
+pypdf
+requests
+PyYAML
