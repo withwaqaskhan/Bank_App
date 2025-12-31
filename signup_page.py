@@ -13,7 +13,7 @@ def show():
     if 'signup_step' not in st.session_state:
         st.session_state.signup_step = 1
 
-    # --- STEP 1: INFORMATION COLLECTION (No Changes Here) ---
+    # --- STEP 1: INFORMATION COLLECTION ---
     if st.session_state.signup_step == 1:
         st.write("Please fill in your details accurately. All fields are mandatory.")
         col1, col2 = st.columns(2)
@@ -27,7 +27,7 @@ def show():
         email_raw = st.text_input("Email Address")
         
         st.subheader("📍 Address Details")
-        provinces = {"Punjab": ["Lahore", "Faisalabad"], "Sindh": ["Karachi", "Hyderabad"]} # Shortened for display
+        provinces = {"Punjab": ["Lahore", "Faisalabad"], "Sindh": ["Karachi", "Hyderabad"]} 
         prov_choice = st.selectbox("Select Province", list(provinces.keys()))
         city_choice = st.selectbox("Select City", provinces[prov_choice])
         res_address = st.text_area("Full Residential Address")
@@ -36,7 +36,6 @@ def show():
         sec_ans = st.text_input("Security Question: Mother's maiden name?")
 
         if st.button("Next: Biometric Enrollment ➡️"):
-            # Validation logic (Same as yours)
             st.session_state.temp_signup_data = {
                 "f_name": f_name, "l_name": l_name, "fa_f_name": fa_f_name, "fa_l_name": fa_l_name,
                 "cnic": cnic, "phone": phone, "email": email_raw.strip().lower(), "province": prov_choice,
@@ -46,7 +45,7 @@ def show():
             st.session_state.signup_step = 2
             st.rerun()
 
-    # --- STEP 2: FACE CAPTURE (UPDATED FOR CLOUD) ---
+    # --- STEP 2: FACE CAPTURE (CLOUD FIXED) ---
     elif st.session_state.signup_step == 2:
         user_info = st.session_state.temp_signup_data
         st.subheader(f"📸 Step 2: Face Enrollment for {user_info['f_name']}")
@@ -54,10 +53,14 @@ def show():
         if 'face_id' not in user_info:
             user_info['face_id'] = dm.get_next_face_id()
         
+        # User ko save karna sirf aik bar
         if 'final_account_no' not in st.session_state:
             success, res = dm.save_user(user_info)
-            if success: st.session_state.final_account_no = res 
-            else: st.error(f"❌ Registration Failed: {res}"); return
+            if success: 
+                st.session_state.final_account_no = res 
+            else: 
+                st.error(f"❌ Registration Failed: {res}")
+                return
 
         acc_no = st.session_state.final_account_no
         clean_acc_no = acc_no.split(":")[-1].strip() if ":" in acc_no else acc_no
@@ -66,17 +69,19 @@ def show():
         if not os.path.exists(folder_name):
             os.makedirs(folder_name)
 
-        # SECURITY LOGIC: Hum 100 images ka requirement poora karenge
         if 'capture_count' not in st.session_state:
             st.session_state.capture_count = 0
 
+        # --- Progress Bar for Visual ---
+        progress = st.session_state.capture_count / 100
+        st.progress(progress)
         st.warning(f"Account: {clean_acc_no} | Progress: {st.session_state.capture_count}/100 Samples")
         
         # Streamlit Camera Input
-        img_file = st.camera_input("Take a snapshot (Multiple times until 100)")
+        img_file = st.camera_input("Take a snapshot (System will auto-generate 10 samples per click)")
 
-        if img_file:
-            # Image processing
+        # Loop Control: Sirf tab chale jab 100 se kam hon aur image click ho
+        if img_file and st.session_state.capture_count < 100:
             image = Image.open(img_file)
             img_array = np.array(image)
             cv2_img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
@@ -86,25 +91,31 @@ def show():
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
             if len(faces) > 0:
-                # Har click par hum 10 samples save karenge taake 10 clicks mein 100 ho jayein
+                # 10 Samples generate karein har click par
                 for i in range(10):
-                    st.session_state.capture_count += 1
-                    current_count = st.session_state.capture_count
-                    if current_count <= 100:
-                        cv2.imwrite(f"{folder_name}/{clean_acc_no}.{current_count}.jpg", gray[faces[0][1]:faces[0][1]+faces[0][3], faces[0][0]:faces[0][0]+faces[0][2]])
+                    if st.session_state.capture_count < 100:
+                        st.session_state.capture_count += 1
+                        c = st.session_state.capture_count
+                        # Image slice aur save
+                        face_img = gray[faces[0][1]:faces[0][1]+faces[0][3], faces[0][0]:faces[0][0]+faces[0][2]]
+                        cv2.imwrite(f"{folder_name}/{clean_acc_no}.{c}.jpg", face_img)
                 
-                st.success(f"Samples Captured! Total: {st.session_state.capture_count}/100")
-                time.sleep(0.5)
-                st.rerun()
+                st.success(f"Added 10 samples! Total: {st.session_state.capture_count}/100")
+                time.sleep(1) # Chota pause taake user dekh sake
+                st.rerun() # Refresh taake camera reset ho agle click ke liye
             else:
-                st.error("No face detected! Please try again.")
+                st.error("No face detected! Please adjust your position.")
 
+        # --- Completion Logic ---
         if st.session_state.capture_count >= 100:
             st.success(f"✅ Signup Successful! Account No: {clean_acc_no}")
             st.balloons()
-            time.sleep(2)
+            time.sleep(3)
+            # Clean up session states
             del st.session_state.capture_count
             if 'final_account_no' in st.session_state: del st.session_state.final_account_no
+            if 'temp_signup_data' in st.session_state: del st.session_state.temp_signup_data
+            
             st.session_state.signup_step = 1
             st.session_state.page = "Login"
             st.rerun()
