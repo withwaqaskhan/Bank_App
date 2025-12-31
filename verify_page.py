@@ -87,7 +87,7 @@ def show():
                 detected_id, confidence = recognizer.predict(gray[y:y+h, x:x+w])
                 
                 # ✅ SECURITY LAYER 2 & 3: Strict confidence logic (Aapka logic)
-                if detected_id == int(user['face_id']) and confidence < 25:
+                if detected_id == int(user['face_id']) and confidence < 35:
                     st.success(f"✅ Identity Confirmed! (Confidence: {round(100 - confidence, 2)}%)")
                     st.balloons()
                     time.sleep(1.5)
